@@ -1,0 +1,29 @@
+graph_code_cmt.cmo : ../../h_program-lang/parse_info.cmi \
+    ../../commons/ocaml.cmi ../../lang_ml/analyze/module_ml.cmi \
+    ../../lang_cmt/parsing/meta_ast_cmt.cmo graph_code_cmt_helpers.cmo \
+    ../../graph_code/graph_code.cmi ../../h_program-lang/entity_code.cmi \
+    ../../commons_core/console.cmi ../../commons/common2.cmi \
+    ../../commons/common.cmi graph_code_cmt.cmi
+graph_code_cmt.cmx : ../../h_program-lang/parse_info.cmx \
+    ../../commons/ocaml.cmx ../../lang_ml/analyze/module_ml.cmx \
+    ../../lang_cmt/parsing/meta_ast_cmt.cmx graph_code_cmt_helpers.cmx \
+    ../../graph_code/graph_code.cmx ../../h_program-lang/entity_code.cmx \
+    ../../commons_core/console.cmx ../../commons/common2.cmx \
+    ../../commons/common.cmx graph_code_cmt.cmi
+graph_code_cmt.cmi : ../../h_program-lang/parse_info.cmi \
+    ../../graph_code/graph_code.cmi ../../commons/common.cmi
+graph_code_cmt_helpers.cmo : ../../commons/common.cmi
+graph_code_cmt_helpers.cmx : ../../commons/common.cmx
+unit_analyze_cmt.cmo : ../../h_program-lang/prolog_code.cmi \
+    ../../commons/oUnit.cmi ../../lang_ml/parsing/lib_parsing_ml.cmi \
+    ../../graph_code/graph_code_prolog.cmi graph_code_cmt.cmi \
+    ../../graph_code/graph_code.cmi ../../h_program-lang/entity_code.cmi \
+    ../../globals/config_pfff.cmi ../../commons/common2.cmi \
+    ../../commons/common.cmi unit_analyze_cmt.cmi
+unit_analyze_cmt.cmx : ../../h_program-lang/prolog_code.cmx \
+    ../../commons/oUnit.cmx ../../lang_ml/parsing/lib_parsing_ml.cmx \
+    ../../graph_code/graph_code_prolog.cmx graph_code_cmt.cmx \
+    ../../graph_code/graph_code.cmx ../../h_program-lang/entity_code.cmx \
+    ../../globals/config_pfff.cmx ../../commons/common2.cmx \
+    ../../commons/common.cmx unit_analyze_cmt.cmi
+unit_analyze_cmt.cmi : ../../commons/oUnit.cmi

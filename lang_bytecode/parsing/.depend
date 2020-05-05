@@ -1,0 +1,17 @@
+lib_parsing_bytecode.cmi : ../../commons/common.cmi
+parse_bytecode.cmi : ../../commons/common.cmi ast_bytecode.cmo
+test_parsing_bytecode.cmi : ../../commons/common.cmi
+ast_bytecode.cmo :
+ast_bytecode.cmx :
+lib_parsing_bytecode.cmo : ../../commons/file_type.cmi \
+    ../../commons/common.cmi lib_parsing_bytecode.cmi
+lib_parsing_bytecode.cmx : ../../commons/file_type.cmx \
+    ../../commons/common.cmx lib_parsing_bytecode.cmi
+parse_bytecode.cmo : ../../commons/common.cmi parse_bytecode.cmi
+parse_bytecode.cmx : ../../commons/common.cmx parse_bytecode.cmi
+test_parsing_bytecode.cmo : ../../h_program-lang/parse_info.cmi \
+    parse_bytecode.cmi lib_parsing_bytecode.cmi ../../commons/common.cmi \
+    test_parsing_bytecode.cmi
+test_parsing_bytecode.cmx : ../../h_program-lang/parse_info.cmx \
+    parse_bytecode.cmx lib_parsing_bytecode.cmx ../../commons/common.cmx \
+    test_parsing_bytecode.cmi

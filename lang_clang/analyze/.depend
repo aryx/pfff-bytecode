@@ -1,0 +1,51 @@
+compile_commands_clang.cmo : ../../commons/common.cmi \
+    compile_commands_clang.cmi
+compile_commands_clang.cmx : ../../commons/common.cmx \
+    compile_commands_clang.cmi
+compile_commands_clang.cmi : ../../commons/common.cmi
+errors_clang.cmo : ../../commons/common.cmi errors_clang.cmi
+errors_clang.cmx : ../../commons/common.cmx errors_clang.cmi
+errors_clang.cmi : ../parsing/ast_clang.cmo
+graph_code_clang.cmo : type_clang.cmi ../parsing/parser_clang.cmi \
+    ../../h_program-lang/parse_info.cmi location_clang.cmi \
+    ../../graph_code/graph_code_prolog.cmi \
+    ../../graph_code/graph_code_helpers.cmi ../../graph_code/graph_code.cmi \
+    errors_clang.cmi ../../h_program-lang/entity_code.cmi \
+    ../../commons_core/console.cmi ../../commons/common2.cmi \
+    ../../commons/common.cmi ../parsing/ast_clang.cmo graph_code_clang.cmi
+graph_code_clang.cmx : type_clang.cmx ../parsing/parser_clang.cmx \
+    ../../h_program-lang/parse_info.cmx location_clang.cmx \
+    ../../graph_code/graph_code_prolog.cmx \
+    ../../graph_code/graph_code_helpers.cmx ../../graph_code/graph_code.cmx \
+    errors_clang.cmx ../../h_program-lang/entity_code.cmx \
+    ../../commons_core/console.cmx ../../commons/common2.cmx \
+    ../../commons/common.cmx ../parsing/ast_clang.cmx graph_code_clang.cmi
+graph_code_clang.cmi : ../../graph_code/graph_code_prolog.cmi \
+    ../../graph_code/graph_code.cmi ../../commons/common.cmi
+location_clang.cmo : ../parsing/parser_clang.cmi ../../commons/common2.cmi \
+    ../../commons/common.cmi ../parsing/ast_clang.cmo location_clang.cmi
+location_clang.cmx : ../parsing/parser_clang.cmx ../../commons/common2.cmx \
+    ../../commons/common.cmx ../parsing/ast_clang.cmx location_clang.cmi
+location_clang.cmi : ../../commons/common.cmi ../parsing/ast_clang.cmo
+test_analyze_clang.cmo : uninclude_clang.cmi \
+    ../parsing/lib_parsing_clang.cmi compile_commands_clang.cmi \
+    ../../commons/common.cmi test_analyze_clang.cmi
+test_analyze_clang.cmx : uninclude_clang.cmx \
+    ../parsing/lib_parsing_clang.cmx compile_commands_clang.cmx \
+    ../../commons/common.cmx test_analyze_clang.cmi
+test_analyze_clang.cmi : ../../commons/common.cmi
+type_clang.cmo : ../parsing/parser_clang.cmi errors_clang.cmi \
+    ../../commons/common.cmi ../parsing/ast_clang.cmo type_clang.cmi
+type_clang.cmx : ../parsing/parser_clang.cmx errors_clang.cmx \
+    ../../commons/common.cmx ../parsing/ast_clang.cmx type_clang.cmi
+type_clang.cmi : ../parsing/parser_clang.cmi ../../commons/common.cmi \
+    ../parsing/ast_clang.cmo
+uninclude_clang.cmo : ../parsing/parser_clang.cmi ../parsing/parse_clang.cmi \
+    location_clang.cmi ../../commons_core/console.cmi \
+    ../../commons/common2.cmi ../../commons/common.cmi \
+    ../parsing/ast_clang.cmo uninclude_clang.cmi
+uninclude_clang.cmx : ../parsing/parser_clang.cmx ../parsing/parse_clang.cmx \
+    location_clang.cmx ../../commons_core/console.cmx \
+    ../../commons/common2.cmx ../../commons/common.cmx \
+    ../parsing/ast_clang.cmx uninclude_clang.cmi
+uninclude_clang.cmi : ../../commons/common.cmi

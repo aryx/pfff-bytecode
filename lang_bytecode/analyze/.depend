@@ -1,0 +1,32 @@
+graph_code_bytecode.cmi : ../../graph_code/graph_code.cmi \
+    ../../commons/common.cmi
+test_analyze_bytecode.cmi :
+unit_analyze_bytecode.cmi : ../../commons/oUnit.cmi
+graph_code_bytecode.cmo : ../../h_program-lang/parse_info.cmi \
+    ../parsing/parse_bytecode.cmi \
+    ../../lang_java/parsing/lib_parsing_java.cmi \
+    ../../graph_code/graph_code.cmi ../../h_program-lang/entity_code.cmi \
+    ../../commons_core/console.cmi ../../commons/common2.cmi \
+    ../../commons/common.cmi graph_code_bytecode.cmi
+graph_code_bytecode.cmx : ../../h_program-lang/parse_info.cmx \
+    ../parsing/parse_bytecode.cmx \
+    ../../lang_java/parsing/lib_parsing_java.cmx \
+    ../../graph_code/graph_code.cmx ../../h_program-lang/entity_code.cmx \
+    ../../commons_core/console.cmx ../../commons/common2.cmx \
+    ../../commons/common.cmx graph_code_bytecode.cmi
+test_analyze_bytecode.cmo : test_analyze_bytecode.cmi
+test_analyze_bytecode.cmx : test_analyze_bytecode.cmi
+unit_analyze_bytecode.cmo : ../../h_program-lang/prolog_code.cmi \
+    ../../commons/oUnit.cmi ../../lang_java/parsing/lib_parsing_java.cmi \
+    ../parsing/lib_parsing_bytecode.cmi \
+    ../../graph_code/graph_code_prolog.cmi \
+    ../../lang_java/analyze/graph_code_java.cmi graph_code_bytecode.cmi \
+    ../../globals/config_pfff.cmi ../../commons/common2.cmi \
+    ../../commons/common.cmi unit_analyze_bytecode.cmi
+unit_analyze_bytecode.cmx : ../../h_program-lang/prolog_code.cmx \
+    ../../commons/oUnit.cmx ../../lang_java/parsing/lib_parsing_java.cmx \
+    ../parsing/lib_parsing_bytecode.cmx \
+    ../../graph_code/graph_code_prolog.cmx \
+    ../../lang_java/analyze/graph_code_java.cmx graph_code_bytecode.cmx \
+    ../../globals/config_pfff.cmx ../../commons/common2.cmx \
+    ../../commons/common.cmx unit_analyze_bytecode.cmi

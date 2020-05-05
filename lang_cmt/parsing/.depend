@@ -1,0 +1,11 @@
+ast_cmt.cmo :
+ast_cmt.cmx :
+ast_cmt_stdlib.cmo :
+ast_cmt_stdlib.cmx :
+meta_ast_cmt.cmo : ../../commons/ocaml.cmi
+meta_ast_cmt.cmx : ../../commons/ocaml.cmx
+test_parsing_cmt.cmo : ../../commons/ocaml.cmi meta_ast_cmt.cmo \
+    ../../commons/common.cmi test_parsing_cmt.cmi
+test_parsing_cmt.cmx : ../../commons/ocaml.cmx meta_ast_cmt.cmx \
+    ../../commons/common.cmx test_parsing_cmt.cmi
+test_parsing_cmt.cmi : ../../commons/common.cmi
