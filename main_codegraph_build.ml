@@ -6,13 +6,6 @@ let build_stdlib lang root dst =
 
 let main_action xs =
 
-#if FEATURE_CMT
-    | "cmt"  -> 
-          let ml_files = Find_source.files_of_root ~lang:"ml" root in
-          let cmt_files = files in
-          Graph_code_cmt.build ~verbose:!verbose ~root ~cmt_files ~ml_files, 
-          empty
-#endif
 
 #if FEATURE_BYTECODE
     | "bytecode" -> 
