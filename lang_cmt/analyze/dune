@@ -1,0 +1,15 @@
+(library
+ (public_name pfff-lang_cmt-analyze)
+ (name pfff_lang_cmt_analyze)
+ (wrapped false)
+ (libraries
+   compiler-libs
+
+   commons commons_core
+   pfff-config 
+   pfff-graph_code pfff-h_program-lang
+   pfff-lang_ml pfff-lang_ml-analyze
+
+   pfff-lang_cmt
+ )
+)
