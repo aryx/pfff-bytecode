@@ -13,7 +13,7 @@ let dump_cmt file =
   match info.Cmt_format.cmt_annots with
   | Cmt_format.Implementation x ->
       let v = Meta_ast_cmt.vof_structure x in
-      let str = Ocaml.string_of_v v in
+      let str = OCaml.string_of_v v in
       pr str
   | _ -> raise Todo
 

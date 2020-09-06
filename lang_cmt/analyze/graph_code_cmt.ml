@@ -20,6 +20,8 @@ module G = Graph_code
 open Cmt_format
 open Typedtree
 
+module Ocaml = OCaml
+
 let debug = ref false
 
 (*****************************************************************************)
