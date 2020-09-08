@@ -21,8 +21,6 @@ module G = Graph_code
 open Cmt_format
 open Typedtree
 
-module Ocaml = OCaml
-
 let debug = ref false
 
 (*****************************************************************************)
@@ -46,9 +44,9 @@ let debug = ref false
  * parameter below.
  * 
  * related:
- *  - typerex
+ *  - typerex (fancy module analysis done by tiphaine turpin?)
  *  - ocamlspotter
- *  - merlin
+ *  - merlin/ocamllsp
  *  - whole program analysis done by ocamlpro recently?
  *  - oug/odb http://odb-serv.forge.ocamlcore.org/
  * 
@@ -68,6 +66,8 @@ type env = {
   cmt_file: Common.filename;
   (* the file the .cmt is supposed to come from, in readable path format *)
   ml_file: Common.filename;
+  (* update: readable means relative to project root dir and without the
+   * dune special encoding (no _build/default or .pp or .objs in it) *)
 
   source_finder: string (* basename *) -> Common.filename list;
   
@@ -144,8 +144,7 @@ let string_of_id id =
    final_string_of_ident s
 
 let s_of_n xs = 
- xs |> List.map final_string_of_ident
-    |> Common.join "."
+ xs |> List.map final_string_of_ident |> Common.join "."
 
 
 let (name_of_path: Path.t -> name) = fun path ->
@@ -165,7 +164,7 @@ let (name_of_path: Path.t -> name) = fun path ->
    *)
   | "Bigarray"::xs -> "Stdlib__bigarray"::xs
   (* ugly: moreover explicit calls to Pervasives.xxx do not get transformed
-   * either in simply Stdlib.xxx, hence this hack
+   * either in simply Stdlib.xxx, hence this second hack
    *)
   | "Stdlib"::"Pervasives"::xs -> "Stdlib"::xs
   | _ -> xs
@@ -190,6 +189,9 @@ let (name_of_longident_loc: Longident.t Asttypes.loc -> name) = fun lidloc ->
   let lid = lidloc.Asttypes.txt in
   Longident.flatten lid
 
+(* undo the encoding dune is doing on files to get nicer paths in codegraph
+ * and codemap.
+ *)
 let undo_dune_mlfile file = 
   match file with
   | _ when file =~ "^\\(.*\\)/_build/default/\\(.*\\)\\.pp\\.\\(ml[i]?\\)$" ->
@@ -230,8 +232,23 @@ let readable_path_of_ast ast root readable_cmt source_finder =
   in 
   let res = 
    match readable_opt with
+   (* easy case *)
    | Some readable when Sys.file_exists fullpath -> readable
-   | _ ->
+   | Some _readable ->
+       let candidates = ["mll"; "mly"; "dyp"] in
+       let (d,b,_e) = Common2.dbe_of_filename fullpath in
+       let xs = candidates |> List.map (fun ext ->
+          Common2.filename_of_dbe (d,b,ext))
+        in
+       (match xs |> List.find_opt Sys.file_exists with
+       | Some fullpath -> Common.readable ~root fullpath
+       | None ->
+        pr2 (spf "no matching source for %s, candidates = [%s]"
+                  readable_cmt (xs |> Common.join ", "));
+        (spf "TODO_NO_SOURCE_FOUND:%s" fullpath)
+       )
+       
+   | None ->
     (* try our best to find the readable source *)
     (match source_finder (Filename.basename fullpath) with
     | [readable] -> readable
@@ -441,7 +458,7 @@ let path_resolve_aliases env p =
 (*****************************************************************************)
     
 let rec kind_of_type_desc x =
-  if !debug then pr2 (Ocaml.string_of_v (Meta_ast_cmt.vof_type_desc x));
+  if !debug then pr2 (OCaml.string_of_v (Meta_ast_cmt.vof_type_desc x));
   match x with
   | Types.Tarrow _ -> 
       E.Function
@@ -460,7 +477,7 @@ let rec kind_of_type_desc x =
   | Types.Tobject _ -> E.Class
   | Types.Tpackage _ -> E.Module
   | _ -> 
-      pr2 (Ocaml.string_of_v (Meta_ast_cmt.vof_type_desc x));
+      pr2 (OCaml.string_of_v (Meta_ast_cmt.vof_type_desc x));
       raise Todo
       
 and kind_of_type_expr x =
@@ -482,13 +499,13 @@ let kind_of_value_descr vd =
 (*****************************************************************************)
 
 let typename_of_texpr x =
-  if !debug then pr2(Ocaml.string_of_v(Meta_ast_cmt.vof_type_expr_show_all x));
+  if !debug then pr2(OCaml.string_of_v(Meta_ast_cmt.vof_type_expr_show_all x));
   let rec aux x = 
     match x.Types.desc with
     | Types.Tconstr(path, _xs, _aref) -> path
     | Types.Tlink t -> aux t
     | _ ->
-      pr2 (Ocaml.string_of_v (Meta_ast_cmt.vof_type_expr_show_all x));
+      pr2 (OCaml.string_of_v (Meta_ast_cmt.vof_type_expr_show_all x));
       raise Todo
   in
   let path = aux x in
