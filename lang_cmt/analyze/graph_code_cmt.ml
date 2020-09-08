@@ -1,6 +1,7 @@
 (* Yoann Padioleau
  *
  * Copyright (C) 2012-2014 Facebook
+ * Copyright (C) 2020 R2C
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -189,6 +190,22 @@ let (name_of_longident_loc: Longident.t Asttypes.loc -> name) = fun lidloc ->
   let lid = lidloc.Asttypes.txt in
   Longident.flatten lid
 
+let undo_dune_mlfile file = 
+  match file with
+  | _ when file =~ "^\\(.*\\)/_build/default/\\(.*\\)\\.pp\\.\\(ml[i]?\\)$" ->
+    let (root, dir, ext) = Common.matched3 file in
+    spf "%s/%s.%s" root dir ext
+  | _ when file =~ "^\\(.*\\)_build/default/\\(.*\\)\\.\\(ml[i]?\\)$" ->
+    let (root, dir, ext) = Common.matched3 file in
+    spf "%s%s.%s" root dir ext
+  | _ -> file
+
+let undo_dune_cmtfile file = 
+  match file with
+  | _ when file =~ "^\\(.*\\)_build/default/\\(.*\\)/\\.[a-zA-Z_]+\\.[e]?objs/byte/\\(.*\\)$" ->
+      let (root, dir, file) = Common.matched3 file in
+      spf "%s%s/%s" root dir file
+  | _ -> file
 
 let readable_path_of_ast ast root readable_cmt source_finder =
   let fullpath =
@@ -199,6 +216,7 @@ let readable_path_of_ast ast root readable_cmt source_finder =
       | None -> failwith (spf "no cmt_source_file for %s" readable_cmt)
       )
   in
+  let fullpath = undo_dune_mlfile fullpath in
   (* ugly: the OCaml distribution and most of the OPAM libraries do not
    * come with .cmt files, so I have to reference them via the FOR_MERLIN
    * symlink pointing to ~/.opam/4.../.opam-switch/build/...
@@ -210,9 +228,10 @@ let readable_path_of_ast ast root readable_cmt source_finder =
     try Some (Common.readable ~root fullpath)
     with Failure _ -> None
   in 
-  match readable_opt with
-  | Some readable when Sys.file_exists fullpath -> readable
-  | _ ->
+  let res = 
+   match readable_opt with
+   | Some readable when Sys.file_exists fullpath -> readable
+   | _ ->
     (* try our best to find the readable source *)
     (match source_finder (Filename.basename fullpath) with
     | [readable] -> readable
@@ -229,8 +248,10 @@ let readable_path_of_ast ast root readable_cmt source_finder =
       with Not_found ->
         pr2 (spf "no matching source for %s, candidates = [%s]"
                   readable_cmt (xs |> Common.join ", "));
-        "TODO_NO_SOURCE_FOUND"
+        (spf "TODO_NO_SOURCE_FOUND:%s" fullpath)
     )
+  in
+  res
 
 let use_of_undefined_ok name =
   name |> List.exists (function
@@ -1274,7 +1295,7 @@ let build ?(verbose=false) ~root ~cmt_files ~ml_files  =
     List.iter (fun file ->
       k();
       let ast = parse file in
-      let readable_cmt = Common.readable ~root file in
+      let readable_cmt = undo_dune_cmtfile (Common.readable ~root file) in
       try 
       extract_defs_uses ~root { env with phase = Defs } ast readable_cmt
       with 
@@ -1292,8 +1313,8 @@ let build ?(verbose=false) ~root ~cmt_files ~ml_files  =
     List.iter (fun file ->
       k();
       let ast = parse file in
-      let readable_cmt = Common.readable ~root file in
-      (* pad: a bit pad specific *)
+      let readable_cmt = undo_dune_cmtfile (Common.readable ~root file) in
+      (* old: pad: a bit pad specific *)
       if readable_cmt =~ "^external"
       then ()
       else extract_defs_uses ~root { env with phase = Uses} ast readable_cmt
