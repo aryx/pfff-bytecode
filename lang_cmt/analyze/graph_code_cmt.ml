@@ -151,7 +151,7 @@ let (name_of_path: Path.t -> name) = fun path ->
   (* similar to Path.name *)
   let rec aux = function
   | Path.Pident id -> [string_of_id id]
-  | Path.Pdot (p, s, _pos) ->
+  | Path.Pdot (p, s) ->
      s::aux p
   | Path.Papply(p1, _p2TODO) -> 
      aux p1
@@ -595,7 +595,8 @@ let rec extract_defs_uses ~root env ast readable_cmt =
      * a E.Module.
      * less: could also mark those as a dupe module and generate a File 
      *)
-    if ast.cmt_modname =~ "Main.*"
+    if ast.cmt_modname =~ "Main.*" || 
+       ast.cmt_modname =~ "Dune__exe__.*"
     then (readable_cmt, E.File)
     else (ast.cmt_modname, E.Module)
   in
@@ -785,6 +786,7 @@ and structure_item_desc env loc = function
         type_declaration env td
       )
   | Tstr_exception ec ->
+      let ec = ec.tyexn_constructor in
       let id = ec.ext_id in
       let loc = ec.ext_loc in
       let v3  = ec.ext_type in
@@ -848,9 +850,12 @@ and structure_item_desc env loc = function
     in ()
 
   (* opened names are resolved, no need to handle that I think *)
-  | Tstr_open od  ->
+  | Tstr_open _od  ->
+(* OLD: 
     let path = od.open_path in
     path_t env path
+*)
+    ()
   | Tstr_include _incd ->
 (*
       let _ = module_expr env v1 and _ = List.iter (Ident.t env) v2 in ()
@@ -945,6 +950,7 @@ and sig_item_desc env loc = function
 (* Pattern *)
 (* ---------------------------------------------------------------------- *)
 and pattern_desc t env = function
+  | Tpat_exception _ -> failwith "Tpat_exception"
   | Tpat_any -> ()
   | Tpat_var ((id, _loc)) ->
       env.locals <- string_of_id id :: env.locals
@@ -1014,6 +1020,12 @@ and expression_desc t env =
         expression env exp;
       );
       expression env v3
+
+  (* just treat that like a classic let? *)
+  | Texp_letop _ -> 
+      (* TODO *)
+      pr2_once "TODO:Texp_letop"
+
   | Texp_function ({ arg_label = v1; cases = v2; partial = v3; param = _TODO}) ->
       let _ = label env v1
       and _ = 
@@ -1033,7 +1045,7 @@ and expression_desc t env =
              in ())
           v2
       in ()
-  | Texp_match ((v1, v2, _v3, pa)) ->
+  | Texp_match ((v1, v2, pa)) ->
       let _ = expression env v1
       and _ =
         List.iter (fun { c_lhs = pat; c_rhs = exp; c_guard = _TODO } ->
@@ -1133,7 +1145,7 @@ and expression_desc t env =
              in ())
           v2
       in ()
-  | Texp_letmodule ((v1, _loc, v3, v4)) ->
+  | Texp_letmodule ((v1, _loc, _vpresence, v3, v4)) ->
       let _ = Ident.t env v1
       and _ = module_expr env v3
       and _ = expression env v4
@@ -1150,6 +1162,8 @@ and expression_desc t env =
       expression env e
   | Texp_extension_constructor (_, _) ->
       failwith "Texp_extension_constructor"
+  | Texp_open (_v1TODO, v2) -> 
+      expression env v2
 
 
 (*
@@ -1236,18 +1250,18 @@ and core_type_desc env =
   | Ttyp_package _v1 -> 
     pr2_once (spf "TODO: Ttyp_package, %s" env.cmt_file)
 
-and object_field env = 
-  function
-  | OTtag (_str, _attrs, typ) -> 
+and object_field env x = 
+  match x.of_desc with
+  | OTtag (_str, typ) -> 
       core_type env typ
   | OTinherit _ ->
     failwith "OTinherit"
 
 
  
-and row_field env =
-  function
-  | Ttag ((v1, _attrs, _bool, v3)) ->
+and row_field env x =
+  match x.rf_desc with
+  | Ttag ((v1, _bool, v3)) ->
       let _ = label env v1
       and _ = List.iter (core_type env) v3
       in ()
@@ -1346,8 +1360,16 @@ let build ?(verbose=false) ~root ~cmt_files ~ml_files  =
 
   (* lookup failures summary *)
   let xs = Common.hashset_to_list hstat_lookup_failures in
-  let modules = xs |> List.map
-    (fun node-> Module_ml.top_module_of_node node, ()) in
+  let modules = xs |> Common.map_filter
+    (fun node-> 
+        try 
+          Some (Module_ml.top_module_of_node node, ())
+        with Failure _ ->
+            (* todo: ex:
+             * could not find top module of Function: sexp_of_compilation_unit
+             *)
+            None
+    ) in
   let counts = modules |> Common.group_assoc_bykey_eff 
                        |> List.map (fun (x, xs)-> x, List.length xs) 
                        |> Common.sort_by_val_highfirst

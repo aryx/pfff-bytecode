@@ -58,7 +58,7 @@ open Asttypes
 type type_expr =
   { mutable desc: type_desc;
     mutable level: int;
-    mutable scope: int option;
+    mutable scope: int;
     id: int }
 
 and type_desc =
@@ -260,7 +260,11 @@ and value_kind =
                                         (* Self *)
   | Val_anc of (string * Ident.t) list * string
                                         (* Ancestor *)
-  | Val_unbound                         (* Unbound variable *)
+  | Val_unbound of value_unbound_reason (* Unbound variable *)
+
+and value_unbound_reason =
+  | Val_unbound_instance_variable
+  | Val_unbound_ghost_recursive
 
 (* Variance *)
 
@@ -274,6 +278,7 @@ module Variance : sig
   val union  : t -> t -> t
   val inter  : t -> t -> t
   val subset : t -> t -> bool
+  val eq : t -> t -> bool
   val set : f -> bool -> t -> t
   val mem : f -> t -> bool
   val conjugate : t -> t                (* exchange positive and negative *)
@@ -291,8 +296,8 @@ type type_declaration =
     type_manifest: type_expr option;
     type_variance: Variance.t list;
     (* covariant, contravariant, weakly contravariant, injective *)
-    type_newtype_level: (int * int) option;
-    (* definition level * expansion level *)
+    type_is_newtype: bool;
+    type_expansion_scope: int;
     type_loc: Location.t;
     type_attributes: Parsetree.attributes;
     type_immediate: bool; (* true iff type should not be a pointer *)
@@ -310,7 +315,7 @@ and record_representation =
   | Record_float                        (* All fields are floats *)
   | Record_unboxed of bool    (* Unboxed single-field record, inlined or not *)
   | Record_inlined of int               (* Inlined record *)
-  | Record_extension                    (* Inlined record under extension *)
+  | Record_extension of Path.t          (* Inlined record under extension *)
 
 and label_declaration =
   {
@@ -401,26 +406,31 @@ type class_type_declaration =
 
 (* Type expressions for the module language *)
 
+type visibility =
+  | Exported
+  | Hidden
+
 type module_type =
     Mty_ident of Path.t
   | Mty_signature of signature
   | Mty_functor of Ident.t * module_type option * module_type
-  | Mty_alias of alias_presence * Path.t
+  | Mty_alias of Path.t
 
-and alias_presence =
-  | Mta_present
-  | Mta_absent
+and module_presence =
+  | Mp_present
+  | Mp_absent
 
 and signature = signature_item list
 
 and signature_item =
-    Sig_value of Ident.t * value_description
-  | Sig_type of Ident.t * type_declaration * rec_status
-  | Sig_typext of Ident.t * extension_constructor * ext_status
-  | Sig_module of Ident.t * module_declaration * rec_status
-  | Sig_modtype of Ident.t * modtype_declaration
-  | Sig_class of Ident.t * class_declaration * rec_status
-  | Sig_class_type of Ident.t * class_type_declaration * rec_status
+    Sig_value of Ident.t * value_description * visibility
+  | Sig_type of Ident.t * type_declaration * rec_status * visibility
+  | Sig_typext of Ident.t * extension_constructor * ext_status * visibility
+  | Sig_module of
+      Ident.t * module_presence * module_declaration * rec_status * visibility
+  | Sig_modtype of Ident.t * modtype_declaration * visibility
+  | Sig_class of Ident.t * class_declaration * rec_status * visibility
+  | Sig_class_type of Ident.t * class_type_declaration * rec_status * visibility
 
 and module_declaration =
   {
@@ -493,3 +503,11 @@ type label_description =
     lbl_loc: Location.t;
     lbl_attributes: Parsetree.attributes;
   }
+
+(** Extracts the list of "value" identifiers bound by a signature.
+    "Value" identifiers are identifiers for signature components that
+    correspond to a run-time value: values, extensions, modules, classes.
+    Note: manifest primitives do not correspond to a run-time value! *)
+val bound_value_identifiers: signature -> Ident.t list
+
+val signature_item_id : signature_item -> Ident.t
