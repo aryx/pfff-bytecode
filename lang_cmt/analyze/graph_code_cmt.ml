@@ -145,6 +145,12 @@ let string_of_id id =
    let s = Ident.name id in
    final_string_of_ident s
 
+(* TODO: starting from 4.10, the mb_id module binding can be an option *)
+let string_of_id_opt idopt =
+   match idopt with
+   | None -> "None_NO_IDENT_TODO"
+   | Some id -> string_of_id id
+
 let s_of_n xs = 
  xs |> List.map final_string_of_ident |> Common.join "."
 
@@ -810,7 +816,7 @@ and structure_item_desc env loc = function
       let loc = mb.mb_loc in
       let modexpr = mb.mb_expr in
 
-      let full_ident = env.current_entity @ [string_of_id id] in
+      let full_ident = env.current_entity @ [string_of_id_opt id] in
       let node = (full_ident, E.Module) in
       (match modexpr.mod_desc with
       | Tmod_ident (path, _lid) ->
@@ -820,7 +826,7 @@ and structure_item_desc env loc = function
             Common.push (full_ident, path_resolve_locals env name E.Module) 
               env.module_aliases
           end;
-          add_full_path_local env (string_of_id id, full_ident) E.Module
+          add_full_path_local env (string_of_id_opt id, full_ident) E.Module
       | _ -> 
           let env =
             (* since ocaml 4.07 the stdlib has been reorganized with
@@ -829,7 +835,7 @@ and structure_item_desc env loc = function
              * here because calls to pervasives entities are transformed
              * by the compiler in Stdlib.xxx, not Stdlib.Pervasives.xxx
              *)
-            if string_of_id id = "Pervasives" 
+            if string_of_id_opt id = "Pervasives" 
             then env
             else add_node_and_edge_if_defs_mode env node (loc) 
           in
@@ -837,7 +843,7 @@ and structure_item_desc env loc = function
       )
   | Tstr_recmodule xs ->
       List.iter (fun { mb_id = id; mb_loc = loc; mb_expr = me; _ } ->
-        let full_ident = env.current_entity @ [string_of_id id] in
+        let full_ident = env.current_entity @ [string_of_id_opt id] in
         let node = (full_ident, E.Module) in
         let env = add_node_and_edge_if_defs_mode env node (loc) in
         (* module_type env v3; *)
@@ -1184,15 +1190,21 @@ and exp_extra env = function
 (* ---------------------------------------------------------------------- *)
 (* Module *)
 (* ---------------------------------------------------------------------- *)
+and functor_parameter env = function
+  | Unit -> ()
+  | Named (v1, _loc, v3) ->
+      let _ = Ident.t env v1
+      and _ = module_type env v3
+      in ()
+
 and module_expr_desc env =
   function
   | Tmod_ident ((v1, _loc_longident)) ->
       path_t env v1
   | Tmod_structure v1 -> structure env v1
-  | Tmod_functor ((v1, _loc, v3, v4)) ->
-      let _ = Ident.t env v1
-      and _ = module_type env v3
-      and _ = module_expr env v4
+  | Tmod_functor ((v1, v2)) ->
+      let _ = functor_parameter env v1
+      and _ = module_expr env v2
       in ()
   | Tmod_apply ((v1, v2, v3)) ->
       let _ = module_expr env v1

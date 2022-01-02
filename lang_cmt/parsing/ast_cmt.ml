@@ -16,11 +16,11 @@
 (*****************************************************************************)
 (* Prelude *)
 (*****************************************************************************)
-(* 
- * This is mostly a wrapper around the OCaml compiler libs and its
+(* This is mostly a wrapper around the OCaml compiler libs and its
  * typed OCaml tree. See the ast_cmt_stdlib.ml file in this directory for
  * a copy paste of what was in the OCaml 4.02 compiler source (and what
  * was used to generate via ocamltarzan meta_ast_cmt.ml)
+ * update: meta_ast_cmt.ml now corresponds to OCaml 4.10.2
  * 
  * Starting from ocaml 4.02, the library
  * https://github.com/ocaml-ppx/ocaml-migrate-parsetree
