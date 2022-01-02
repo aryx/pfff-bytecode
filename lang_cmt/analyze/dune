@@ -3,6 +3,7 @@
  (name pfff_lang_cmt_analyze)
  (wrapped false)
  (libraries
+   ounit2
    compiler-libs
 
    commons commons_core
