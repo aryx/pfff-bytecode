@@ -251,7 +251,7 @@ let readable_path_of_ast ast root readable_cmt source_finder =
        (match xs |> List.find_opt Sys.file_exists with
        | Some fullpath -> Common.readable ~root fullpath
        | None ->
-        logger#error "no matching source for %s, candidates = [%s]"
+        logger#debug "no matching source for %s, candidates = [%s]"
                   readable_cmt (xs |> Common.join ", ");
         (spf "TODO_NO_SOURCE_FOUND:%s" fullpath)
        )
@@ -271,7 +271,7 @@ let readable_path_of_ast ast root readable_cmt source_finder =
       try 
         xs |> List.find (fun file -> Filename.dirname file = dir_cmt)
       with Not_found ->
-        logger#error "no matching source for %s, candidates = [%s]"
+        logger#debug "no matching source for %s, candidates = [%s]"
                   readable_cmt (xs |> Common.join ", ");
         (spf "TODO_NO_SOURCE_FOUND:%s" fullpath)
     )
@@ -604,7 +604,7 @@ let rec extract_defs_uses ~root env ast readable_cmt =
      * less: could also mark those as a dupe module and generate a File 
      *)
     if ast.cmt_modname =~ "Main.*" || 
-       ast.cmt_modname =~ "Dune__exe__.*"
+       ast.cmt_modname =~ "[dD]une__exe.*"
     then (readable_cmt, E.File)
     else (ast.cmt_modname, E.Module)
   in
@@ -1333,7 +1333,7 @@ let build ~root ~cmt_files ~ml_files  =
     full_path_local_module = ref [];
     lookup_fail = (fun env dst ->
       let src = env.current in
-      logger#error "PB: lookup_fail on %s (in %s, in file %s)"
+      logger#debug "PB: lookup_fail on %s (in %s, in file %s)"
              (G.string_of_node dst) (G.string_of_node src) env.cmt_file;
       (* less: could also use Hashtbl.replace to count entities only once *)
       Hashtbl.add hstat_lookup_failures dst true;
@@ -1342,7 +1342,7 @@ let build ~root ~cmt_files ~ml_files  =
 
   (* step1: creating the nodes and 'Has' edges, the defs *)
   logger#info "\nstep1: extract defs";
-  files |> Console.progress ~show:!debug (fun k -> 
+  files |> Console.progress ~show:true (fun k -> 
     List.iter (fun file ->
       k();
       let ast = parse file in
@@ -1360,9 +1360,10 @@ let build ~root ~cmt_files ~ml_files  =
 
   (* step2: creating the 'Use' edges *)
   logger#info "\nstep2: extract uses";
-  files |> Console.progress ~show:!debug (fun k -> 
+  files |> Console.progress ~show:true (fun k -> 
     List.iter (fun file ->
       k();
+      logger#info "analyzing %s" file;
       let ast = parse file in
       let readable_cmt = undo_dune_cmtfile (Common.readable ~root file) in
       (* old: pad: a bit pad specific *)
