@@ -23,7 +23,7 @@
 type constant =
     Const_int of int
   | Const_char of char
-  | Const_string of string * string option
+  | Const_string of string * Location.t * string option
   | Const_float of string
   | Const_int32 of int32
   | Const_int64 of int64
@@ -60,4 +60,8 @@ type 'a loc = 'a Location.loc = {
 type variance =
   | Covariant
   | Contravariant
-  | Invariant
+  | NoVariance
+
+type injectivity =
+  | Injective
+  | NoInjectivity

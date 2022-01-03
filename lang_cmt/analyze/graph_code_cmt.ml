@@ -1307,7 +1307,7 @@ and
 (* Main entry point *)
 (*****************************************************************************)
 
-let build ?(verbose=false) ~root ~cmt_files ~ml_files  =
+let build ~root ~cmt_files ~ml_files  =
 
   let files = cmt_files in
   let g = G.create () in
@@ -1333,8 +1333,7 @@ let build ?(verbose=false) ~root ~cmt_files ~ml_files  =
     full_path_local_module = ref [];
     lookup_fail = (fun env dst ->
       let src = env.current in
-      if verbose
-      then logger#error "PB: lookup_fail on %s (in %s, in file %s)"
+      logger#error "PB: lookup_fail on %s (in %s, in file %s)"
              (G.string_of_node dst) (G.string_of_node src) env.cmt_file;
       (* less: could also use Hashtbl.replace to count entities only once *)
       Hashtbl.add hstat_lookup_failures dst true;
@@ -1342,8 +1341,8 @@ let build ?(verbose=false) ~root ~cmt_files ~ml_files  =
   } in
 
   (* step1: creating the nodes and 'Has' edges, the defs *)
-  if verbose then logger#info "\nstep1: extract defs";
-  files |> Console.progress ~show:verbose (fun k -> 
+  logger#info "\nstep1: extract defs";
+  files |> Console.progress ~show:!debug (fun k -> 
     List.iter (fun file ->
       k();
       let ast = parse file in
@@ -1360,8 +1359,8 @@ let build ?(verbose=false) ~root ~cmt_files ~ml_files  =
     ));
 
   (* step2: creating the 'Use' edges *)
-  if verbose then logger#info "\nstep2: extract uses";
-  files |> Console.progress ~show:verbose (fun k -> 
+  logger#info "\nstep2: extract uses";
+  files |> Console.progress ~show:!debug (fun k -> 
     List.iter (fun file ->
       k();
       let ast = parse file in

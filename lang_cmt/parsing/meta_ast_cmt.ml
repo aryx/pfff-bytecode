@@ -1270,7 +1270,7 @@ and vof_type_declaration {
   let bnds = bnd :: bnds in
   let arg =
     Ocaml.vof_list
-      (fun (v1, v2) ->
+      (fun (v1, (v2, _injTODO)) ->
          let v1 = vof_core_type v1
          and v2 = vof_variance v2
          in Ocaml.VTuple [ v1; v2 ])
@@ -1453,7 +1453,7 @@ and vof_class_infos: 'a. ('a -> Ocaml.v) -> 'a class_infos -> Ocaml.v
   let bnds = bnd :: bnds in
   let arg =
     Ocaml.vof_list
-      (fun (v1, v2) ->
+      (fun (v1, (v2, _injTODO)) ->
          let v1 = vof_core_type v1
          and v2 = vof_variance v2
          in Ocaml.VTuple [ v1; v2 ])
@@ -1658,7 +1658,7 @@ and vof_variance =
   function
   | Covariant -> Ocaml.VSum (("Covariant", []))
   | Contravariant -> Ocaml.VSum (("Contravariant", []))
-  | Invariant -> Ocaml.VSum (("Invariant", []))
+  | NoVariance -> Ocaml.VSum (("NoVariance", []))
 
 and vof_constructor_declaration {
                                 cd_id = v_cd_id;
