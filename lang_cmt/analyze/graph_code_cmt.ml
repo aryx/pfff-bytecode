@@ -660,11 +660,12 @@ and structure_item env
  { str_desc = v_str_desc; str_loc = loc; str_env = _ } =
   structure_item_desc env loc v_str_desc
 
-and  pattern env
+and pattern : type a. env -> a general_pattern -> unit =
+ fun env -> function
   { pat_desc = v_pat_desc; pat_type = v_pat_type; 
     pat_loc = _v_pat_loc; pat_extra = _v_pat_extra; pat_env = _v_pat_env;
     pat_attributes = _;
-  } =
+  } ->
   pattern_desc v_pat_type env v_pat_desc
 
 and expression env
@@ -957,8 +958,14 @@ and sig_item_desc env loc = function
 (* ---------------------------------------------------------------------- *)
 (* Pattern *)
 (* ---------------------------------------------------------------------- *)
-and pattern_desc t env = function
+and pattern_desc : type a. TypesOld.type_expr -> env -> a pattern_desc -> unit =
+  fun t env -> function
   | Tpat_exception _ -> failwith "Tpat_exception"
+  | Tpat_value v1 -> 
+      (* v1 has a weird private type that forbid to access it, so
+       * use Obj.magic to go around it *)
+      let v1 = Obj.magic v1 in
+      pattern env v1
   | Tpat_any -> ()
   | Tpat_var ((id, _loc)) ->
       env.locals <- string_of_id id :: env.locals
