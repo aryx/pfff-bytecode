@@ -63,7 +63,6 @@ let vof_loc _f _x = Ocaml.VUnit
 let vof_constant _x = Ocaml.VUnit
 let vof_constructor_description _x = Ocaml.VUnit
 let vof_label _x = Ocaml.VUnit
-let vof_label_description _x = Ocaml.VUnit
 let vof_closed_flag _x = Ocaml.VUnit
 let vof_rec_flag _x = Ocaml.VUnit
 let vof_partial _x =  Ocaml.VUnit
@@ -78,6 +77,15 @@ let vof_virtual_flag _x = Ocaml.VUnit
 let vof_attributes _x = Ocaml.VUnit
 
 let vof_attribute _x = Ocaml.VUnit
+
+let vof_label_description x = 
+  let s = x.lbl_name in
+  OCaml.VString s
+
+let vof_arg_label = function
+  | Nolabel -> OCaml.VUnit
+  | Labelled s -> OCaml.VSum(("Labelled", [ OCaml.VString s]))
+  | Optional s -> OCaml.VSum(("Optional", [ OCaml.VString s]))
 
 
 let rec vof_type_expr { desc = v_desc; level = v_level; id = v_id; scope = _TODO } =
@@ -429,7 +437,7 @@ and vof_expression_desc =
       and v2 =
         Ocaml.vof_list
           (fun (v1, v2) ->
-             let v1 = vof_label v1
+             let v1 = vof_arg_label v1
              and v2 = Ocaml.vof_option vof_expression v2
              in Ocaml.VTuple [ v1; v2 ])
           v2
@@ -1468,12 +1476,14 @@ and vof_class_infos: 'a. ('a -> Ocaml.v) -> 'a class_infos -> Ocaml.v
 and vof_case : type a. a case -> Ocaml.v = function
   {
                c_lhs = v_lhs;
-               c_guard = _v_guard;
+               c_guard = v_guard;
                c_rhs = v_rhs
              } ->
   let v1 = vof_pattern v_lhs
-  and v2 = vof_expression v_rhs
-  in Ocaml.VTuple [ v1; v2 ]
+  and v2 = Ocaml.vof_option vof_expression v_guard
+  and v3 = vof_expression v_rhs
+  
+  in Ocaml.VTuple [ v1; v2; v3 ]
 
 and vof_value_binding {
                       vb_pat = v_vb_pat;

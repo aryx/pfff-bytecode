@@ -768,8 +768,8 @@ and structure_item_desc env loc = function
       let node = (full_ident, kind_of_value_descr vd) in
       let env = add_node_and_edge_if_defs_mode env node loc in
       value_description env vd
-  | Tstr_type (_recTODO, xs) ->
-
+  | Tstr_type (_rec, xs) ->
+      (* todo? should do different things depending on rec flag? *)
       (* first pass *)
       xs |> List.iter (fun td ->
         let id = td.typ_id in
@@ -1006,6 +1006,22 @@ and pattern_desc : type a. TypesOld.type_expr -> env -> a pattern_desc -> unit =
   | Tpat_lazy v1 -> 
       pattern env v1
 
+and value_case env = 
+   fun { c_lhs = pat; c_rhs = exp; c_guard = guard } ->
+          let _ = pattern env pat
+          and _ = v_option (expression env) guard
+          and _ = expression env exp in ()
+
+(* copy-paste of above; alt: use a 'a. type annotation quantification *)
+and computation_case env = 
+   fun { c_lhs = pat; c_rhs = exp; c_guard = guard } ->
+          let _ = pattern env pat
+          and _ = v_option (expression env) guard
+          and _ = expression env exp in ()
+
+and binding_op env { bop_exp; _ (* TODO *) } =
+  expression env bop_exp
+
 (* ---------------------------------------------------------------------- *)
 (* Expression *)
 (* ---------------------------------------------------------------------- *)
@@ -1037,17 +1053,14 @@ and expression_desc t env =
       expression env v3
 
   (* just treat that like a classic let? *)
-  | Texp_letop _ -> 
-      (* TODO *)
-      pr2_once "TODO:Texp_letop"
+  | Texp_letop {let_; ands; param = _; body; partial = _} ->
+      binding_op env let_;
+      List.iter (binding_op env) ands;
+      value_case env body
 
   | Texp_function ({ arg_label = v1; cases = v2; partial = v3; param = _TODO}) ->
       let _ = label env v1
-      and _ = 
-        List.iter (fun { c_lhs = pat; c_rhs = exp; c_guard = _TODO } ->
-          let _ = pattern env pat and _ = expression env exp in ()
-        )
-        v2
+      and _ = List.iter (value_case env) v2
       and _ = partial env v3
       in ()
   | Texp_apply ((v1, v2)) ->
@@ -1062,19 +1075,13 @@ and expression_desc t env =
       in ()
   | Texp_match ((v1, v2, pa)) ->
       let _ = expression env v1
-      and _ =
-        List.iter (fun { c_lhs = pat; c_rhs = exp; c_guard = _TODO } ->
-          let _ = pattern env pat and _ = expression env exp in ()
-        )
-        v2
+      and _ = List.iter (computation_case env) v2
       and _ = partial env pa
       in ()
   | Texp_try ((v1, v2)) ->
       let _ = expression env v1
       and _ =
-        List.iter (fun { c_lhs = pat; c_rhs = exp; c_guard = _TODO } ->
-          let _ = pattern env pat and _ = expression env exp in ()
-        )
+        List.iter (value_case env)
           v2
       in ()
   | Texp_tuple v1 -> let _ = List.iter (expression env) v1 in ()
@@ -1086,7 +1093,7 @@ and expression_desc t env =
 
   | Texp_variant ((v1, v2)) ->
       let _ = label env v1 and _ = v_option (expression env) v2 in ()
-  | Texp_record ({ fields = v1; extended_expression = v2; representation = _TODO}) ->
+  | Texp_record ({ fields = v1; extended_expression = v2; representation = _}) ->
       Array.iter (fun (lbl_descr, rcrd_lbl_def) ->
         match rcrd_lbl_def with
         | Overridden (lid, e) -> 
