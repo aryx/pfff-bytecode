@@ -59,7 +59,7 @@ let debug = ref false
 (*****************************************************************************)
 
 type env = {
-  g: Graph_code.graph;
+  g: Graph_code.t;
 
   phase: phase;
 
