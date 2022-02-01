@@ -25,7 +25,7 @@ module Types = struct
     let class_type_declaration _env _x = ()
 end
 
-let v_option f xs = Common.do_option f xs
+let v_option f xs = Option.iter f xs
 
 let v_string _x = ()
 let v_ref _f _x = ()

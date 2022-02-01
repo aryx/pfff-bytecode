@@ -314,7 +314,7 @@ let extract_defs2 ~g ~file ~graph_code_java ~hjavabasename_to_fullpath ast =
   (* this will be done later in adjust_parents_nested_anon2 *)
   | _ -> ()
   );
-  graph_code_java |> Common.do_option (fun g2 ->
+  graph_code_java |> Option.iter (fun g2 ->
     let node' = unmangle g2 node in
     try 
       let nodeinfo = G.nodeinfo node' g2 in

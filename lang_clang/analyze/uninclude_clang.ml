@@ -63,7 +63,7 @@ let update_current_c_file env (enum, l, xs) =
     Loc.readable_filename_location_of_paren_opt 
       env.root env.current_clang_file (enum, l, xs) 
   in
-  file_opt |> Common.do_option (fun f ->
+  file_opt |> Option.iter (fun f ->
     env.current_c_file := f;
     if not (Hashtbl.mem env.hfile f)
     then begin
