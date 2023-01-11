@@ -6,7 +6,7 @@
    ounit2
    compiler-libs
 
-   commons commons_core
+   commons
    pfff-config 
    pfff-graph_code pfff-h_program-lang
    pfff-lang_ml pfff-lang_ml-analyze
