@@ -19,5 +19,5 @@ let dump_cmt file =
 
 let actions () = [
   "-dump_cmt", " <file>",
-  Common.mk_action_1_arg dump_cmt;
+  Arg_helpers.mk_action_1_arg dump_cmt;
 ]
