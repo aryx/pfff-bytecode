@@ -8,9 +8,10 @@
 
    commons
    pfff-h_program-lang
-   pfff-graph_code 
-   pfff-lang_ml pfff-lang_ml-analyze
-
+   graph_code 
+   parser_ocaml.ast
+   
    pfff-lang_cmt
- )
+   pfff-lang_ml-analyze
+)
 )
