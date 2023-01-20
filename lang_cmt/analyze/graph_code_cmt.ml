@@ -349,7 +349,7 @@ let add_full_path_local env (s, name) kind =
 let add_node_and_edge_if_defs_mode ?(dupe_ok=false) env name_node loc =
   let (name, kind) = name_node in
   let node = (s_of_n name, kind) in
-  if env.phase = Defs then begin
+  if env.phase =*= Defs then begin
     if G.has_node node env.g && dupe_ok
     then () (* pr2 "already present entity" *)
     else begin
@@ -416,7 +416,7 @@ let rec path_type_resolve_aliases env pt =
   | x::xs ->
       let reduced_candidates = 
         module_aliases_candidates |> Common.map_filter (function
-        | (y::ys, v) when x =$= y -> Some (ys, v)
+        | (y::ys, v) when x = y -> Some (ys, v)
         | _ -> None
         )
       in
@@ -444,7 +444,7 @@ let path_resolve_aliases env p =
   | x::xs ->
       let reduced_candidates = 
         module_aliases_candidates |> Common.map_filter (function
-        | (y::ys, v) when x =$= y -> Some (ys, v)
+        | (y::ys, v) when x = y -> Some (ys, v)
         | _ -> None
         )
       in
@@ -523,7 +523,7 @@ let typename_of_texpr x =
  * a lid here because the resolved open are handled by looking at texpr.
  *)
 let add_use_edge_lid env (lid: Longident.t Asttypes.loc) texpr kind =
- if env.phase = Uses then begin
+ if env.phase =*= Uses then begin
   (* get the actual field or constructor name *)
   let str = 
     (* the typename already contains the qualifier *)
@@ -549,7 +549,7 @@ let add_use_edge_lid env (lid: Longident.t Asttypes.loc) texpr kind =
 
 (* for identifiers of Function, Constant, etc *)
 let add_use_edge_name env name loc texpr =
-  if env.phase = Uses then begin
+  if env.phase =*= Uses then begin
     let kind = kind_of_type_expr texpr in
     let name = path_resolve_locals env name kind in
     let name = path_resolve_aliases env name in
@@ -569,7 +569,7 @@ let add_use_edge_name env name loc texpr =
 
 (* for Type *)
 let add_use_edge_type env name loc = 
-  if env.phase = Uses then begin
+  if env.phase =*= Uses then begin
     let kind = E.Type in
 
     let name = path_resolve_locals env name E.Type in
@@ -620,13 +620,13 @@ let rec extract_defs_uses ~root env ast readable_cmt =
     full_path_local_module = ref [];
   }
   in
-  if env.phase = Defs then begin
+  if env.phase =*= Defs then begin
     let dir = Common2.dirname readable_cmt in
     G.create_intermediate_directories_if_not_present env.g dir;
     env.g |> G.add_node env.current;
     env.g |> G.add_edge ((dir, E.Dir), env.current) G.Has;
   end;
-  if env.phase = Uses then begin
+  if env.phase =*= Uses then begin
     ast.cmt_imports |> List.iter (fun (_s, _digest) ->
       (* old: add_use_edge env (s, E.Module)
        * actually ocaml list as dependencies many things which are not.
@@ -701,7 +701,7 @@ and structure_item_desc env loc = function
 
   | Tstr_value ((rec_flag, xs)) ->
       (* first pass *)
-      if rec_flag = Asttypes.Recursive then begin
+      if rec_flag =*= Asttypes.Recursive then begin
         xs |> List.iter (fun vb ->
           let pat = vb.vb_pat in
           let exp = vb.vb_expr in
@@ -786,7 +786,7 @@ and structure_item_desc env loc = function
 
         (match td.typ_kind, td.typ_manifest with
         | Ttype_abstract, Some ({ctyp_desc=Ttyp_constr (path, _lid, _xs); _}) ->
-          if env.phase = Defs then
+          if env.phase =*= Defs then
             let name = name_of_path path in
             Common.push (full_ident, path_resolve_locals env name E.Type)
               env.type_aliases
@@ -822,7 +822,7 @@ and structure_item_desc env loc = function
       (match modexpr.mod_desc with
       | Tmod_ident (path, _lid) ->
           (* do not add nodes for module aliases in the graph *)
-          if env.phase = Defs then begin
+          if env.phase =*= Defs then begin
             let name = name_of_path path in
             Common.push (full_ident, path_resolve_locals env name E.Module) 
               env.module_aliases
@@ -1037,7 +1037,7 @@ and expression_desc t env =
       constant env v1
   | Texp_let ((rec_flag, xs, v3)) ->
       (* first pass *)
-      if rec_flag = Asttypes.Recursive then begin
+      if rec_flag =*= Asttypes.Recursive then begin
         xs |> List.iter (fun { vb_pat = pat; vb_expr = _exp; _ } ->
           match pat.pat_desc with
           | Tpat_var (id, _loc) | Tpat_alias (_, id, _loc) ->

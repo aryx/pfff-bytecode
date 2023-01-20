@@ -22,14 +22,14 @@ let with_graph ~files f =
     );
     (* otherwise will get many lookup failure when build the graph_code *)
     let extra_args = "-nostdlib -nopervasives" in
-    Common.command2 (spf "cd %s; ocamlc -c %s -bin-annot %s"
+    Sys.command (spf "cd %s; ocamlc -c %s -bin-annot %s"
                        tmp_dir
                        extra_args
                        (* dependency order pbs? assume the given list of files
                         * is ordered for ocamlc to work, which means generic
                         * files first and main files at the end.
                         *)
-                       (files |> List.map fst |> Common.join " "));
+                       (files |> List.map fst |> Common.join " ")) |> ignore;
     let cmt_files = Lib_parsing_ml.find_cmt_files_of_dir_or_files [tmp_dir] in
     let ml_files = [] in
     let g = Graph_code_cmt.build ~root ~cmt_files ~ml_files in
