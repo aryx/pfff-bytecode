@@ -30,7 +30,7 @@ let with_graph ~files f =
                         * files first and main files at the end.
                         *)
                        (files |> List.map fst |> Common.join " ")) |> ignore;
-    let cmt_files = Lib_parsing_ml.find_cmt_files_of_dir_or_files [tmp_dir] in
+    let cmt_files = Lib_parsing_ml.find_cmt_files_of_dir_or_files [Fpath.v tmp_dir] |> File.Path.to_strings in
     let ml_files = [] in
     let g = Graph_code_cmt.build ~root ~cmt_files ~ml_files in
     f tmp_dir g
